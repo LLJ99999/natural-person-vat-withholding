@@ -8,11 +8,11 @@
 
 ## 下载
 
-| 下载 | 是什么 | 谁需要 |
+| | 是什么 | 谁需要 |
 |---|---|---|
-| [⬇ 下载技能](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/natural-person-vat-withholding-v0.0.1.zip) | 技能本体，装进 AI 工具就能用 | 财务人员 |
-| [⬇ 下载示例流水表](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/sample-payments.csv) | 一张填好的样表，照着填就行 | 财务人员 |
-| [⬇ 下载全部评测题](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-all-3450.zip) | 3450 道测试题，按 7 类分好 | 想检验效果的人 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/natural-person-vat-withholding-v0.0.1.zip) | 技能本体，装进 AI 工具就能用 | 财务人员 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/sample-payments.csv) | 一张填好的样表，照着填就行 | 财务人员 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-all-3450.zip) | 3450 道测试题，按 7 类分好 | 想检验效果的人 |
 
 测试题也可以按类单独下载，见下面的[评测题库](#评测题库)。
 
@@ -117,16 +117,16 @@
 
 我们准备了 3450 道题，检验 AI 用这个技能能不能把活干对。按类型分成 7 份，点击即可下载：
 
-| 下载 | 类型 | 题数 | 考什么 |
+| | 类型 | 题数 | 考什么 |
 |---|---|---:|---|
-| [⬇ 政策问答](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-Q-policy-577.zip) | 政策问答 | 577 | 哪些要扣、起征点、什么时候报、代开发票怎么办 |
-| [⬇ 口算](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-K-quick-calc-500.zip) | 口算 | 500 | 一笔钱该扣多少增值税和附加税费 |
-| [⬇ 官方算例](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-G-official-82.zip) | 官方算例 | 82 | 税务总局《即问即答》里的例子改编 |
-| [⬇ 月度流水](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-M-monthly-700.zip) | 月度流水 | 700 | 1 到 100 笔的整月流水出表 |
-| [⬇ 不规范格式](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-F-messy-format-575.zip) | 不规范格式 | 575 | 表头乱写、带合计行、日期格式怪等 30 种乱表格 |
-| [⬇ 异常边界](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-X-edge-case-453.zip) | 异常边界 | 453 | 护照、证件号错、退款负数、缺信息、重复录入等 |
-| [⬇ 行为](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-B-behavior-563.zip) | 行为 | 563 | 该问的会不会问，要它代登录、拆单逃税会不会拒绝 |
-| [⬇ 全部](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-all-3450.zip) | 全部 | 3450 | 以上 7 类，加生成和评分程序 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-Q-policy-577.zip) | 政策问答 | 577 | 哪些要扣、起征点、什么时候报、代开发票怎么办 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-K-quick-calc-500.zip) | 口算 | 500 | 一笔钱该扣多少增值税和附加税费 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-G-official-82.zip) | 官方算例 | 82 | 税务总局《即问即答》里的例子改编 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-M-monthly-700.zip) | 月度流水 | 700 | 1 到 100 笔的整月流水出表 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-F-messy-format-575.zip) | 不规范格式 | 575 | 表头乱写、带合计行、日期格式怪等 30 种乱表格 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-X-edge-case-453.zip) | 异常边界 | 453 | 护照、证件号错、退款负数、缺信息、重复录入等 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-B-behavior-563.zip) | 行为 | 563 | 该问的会不会问，要它代登录、拆单逃税会不会拒绝 |
+| [![下载](https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD-2ea44f?style=for-the-badge)](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-all-3450.zip) | 全部 | 3450 | 以上 7 类，加生成和评分程序 |
 
 每份里都有一张总表（Excel），能直接看每道题的问题和标准答案。题目和标准答案由 opus5.5 生成，里面的身份证号都是编的，不对应真人。
 
