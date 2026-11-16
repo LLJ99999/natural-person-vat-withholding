@@ -1,26 +1,38 @@
-# 评测题库：3450 题，按类型分 7 份
+# 评测题库：3450 道题，分 7 类
 
-用来检验一个 Agent 拿着 `natural-person-vat-withholding` 这个 skill，能不能把代扣代缴自然人增值税的活干对：数算得对不对、该问的问没问、不该做的有没有拒绝。
+用来检验 AI 用这个技能能不能把代扣增值税的活干对：数算得对不对、该问的问没问、不该做的有没有拒绝。
 
-题目和标准答案由 opus5.5 生成。计算题的标准答案由独立参考实现 [`scripts/ref.py`](scripts/ref.py) 算出，不调用 skill 的脚本；带附件的题又拿 skill 脚本逐题对过一遍。证件号都是按校验位合成的假号码，不对应任何真实个人。
+题目和标准答案由 opus5.5 生成。计算题的答案由一套独立的计算程序算出，再和技能的计算结果逐题对过。题里的身份证号都是编的，不对应真人。
 
-依据：财政部 税务总局公告2026年第28号、税务总局公告2026年第19号、税务总局《即问即答》（2026-11-13）。
+## 点击下载
 
-## 七种题型
+| 下载 | 类型 | 题数 | 考什么 |
+|---|---|---:|---|
+| [⬇ 政策问答](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-Q-policy-577.zip) | 政策问答 | 577 | 哪些要扣、起征点、什么时候报、代开发票怎么办 |
+| [⬇ 口算](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-K-quick-calc-500.zip) | 口算 | 500 | 一笔钱该扣多少增值税和附加税费 |
+| [⬇ 官方算例](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-G-official-82.zip) | 官方算例 | 82 | 税务总局《即问即答》里的例子改编 |
+| [⬇ 月度流水](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-M-monthly-700.zip) | 月度流水 | 700 | 1 到 100 笔的整月流水出表 |
+| [⬇ 不规范格式](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-F-messy-format-575.zip) | 不规范格式 | 575 | 表头乱写、带合计行、日期格式怪等 30 种乱表格 |
+| [⬇ 异常边界](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-X-edge-case-453.zip) | 异常边界 | 453 | 护照、证件号错、退款负数、缺信息、重复录入等 |
+| [⬇ 行为](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-B-behavior-563.zip) | 行为 | 563 | 该问的会不会问，要它代登录、拆单逃税会不会拒绝 |
+| [⬇ 全部](https://github.com/LLJ99999/natural-person-vat-withholding/releases/download/v0.0.1/vat-eval-all-3450.zip) | 全部 | 3450 | 以上 7 类，加生成和评分程序 |
 
-| 前缀 | 类型 | 题数 | 有附件 | 考什么 | 单独下载 |
-|---|---|---:|---|---|---|
-| Q | 政策问答 | 577 | 否 | 服务分类、适用范围、起征点、申报期限、附加税率、代开发票、平台代办 | `vat-eval-Q-policy-577.zip` |
-| K | 口算 | 500 | 否 | 单人单日的增值税、附加税费，含税/不含税、1%/3%、市区/县城/其他 | `vat-eval-K-quick-calc-500.zip` |
-| G | 官方算例 | 82 | 是 | 《即问即答》算例改编：同日合并、已代开、放弃优惠、残疾人免税、平台代办、跨月 | `vat-eval-G-official-82.zip` |
-| M | 月度流水 | 700 | 是 | 1–100 行的随机月度流水，所属期 2026年11月至2027年12月 | `vat-eval-M-monthly-700.zip` |
-| F | 不规范格式 | 575 | 是 | 30 种乱表格：别名/英文表头、GBK、UTF-16、分号、合计行、序列日期、撇号证件号、RMB 金额… | `vat-eval-F-messy-format-575.zip` |
-| X | 异常边界 | 453 | 是 | 护照、15位身份证、校验位错、负数退款、缺字段、金额模糊、重复行、同号不同名、非自然人… | `vat-eval-X-edge-case-453.zip` |
-| B | 行为 | 563 | 部分 | 缺口径要追问；注入、要求心算/删声明/代提交/登录、拆单逃税、索要证件号、施压写“可以申报” | `vat-eval-B-behavior-563.zip` |
+每份里都有一张总表（Excel）：第一页是总览，后面每类一页，能直接看每道题问了什么、标准答案是什么。
 
-下载地址：[Releases](https://github.com/LLJ99999/natural-person-vat-withholding/releases/latest)。也有一个包含全部 7 类的 `vat-eval-all-3450.zip`。
+## 目前成绩
 
-## 目录
+最早的 450 题实测通过 446 题（没过的 4 题是 AI 偶尔失误）。其余 3000 题还没用 AI 实跑，但带表格的题已经用计算程序逐题核对过。
+
+## 已知不足
+
+- 政策问答和口算按关键词打分，比较粗：说法换了可能被误判，关键词对了但意思错了也可能被放过。
+- 题目和标准答案还没有经过执业会计复核。发现错题欢迎[留言](https://github.com/LLJ99999/natural-person-vat-withholding/issues)。
+
+---
+
+## 给开发者
+
+### 目录
 
 ```
 evals/
@@ -52,7 +64,7 @@ evals/
 | `text_any` | 每组关键词里，回答至少要出现一个 |
 | `text_none` | 回答里不能出现的内容（如完整证件号、“可以申报了”） |
 
-## 怎么跑
+### 怎么跑
 
 需要 Python 3 和 [codex CLI](https://github.com/openai/codex)（模型和接口随意）。
 
@@ -79,17 +91,7 @@ python3 build_cases.py && python3 build_cases2.py && python3 build_cases3.py && 
 python3 organize.py
 ```
 
-## 结果
+### 补充
 
-| 时间 | skill | 范围 | 通过 |
-|---|---|---|---|
-| 2026-11-16 | v0.0.1 发布前 | 最早的 450 题（现分散在各类型里） | 446 / 450（单次） |
-
-没过的 4 题是模型偶发失误。其余 3000 题还没有用模型实跑过；带附件的题已用脚本核对。
-
-## 已知局限
-
-- 政策问答和口算按关键词评分，会放过“关键词对了但说法错了”的回答，也会误伤换了说法的正确回答。
 - 有 40 道“口头补数”的行为题，要 Agent 把用户补充的证件号或金额写进表里再算，`xcheck.py` 查不了。
 - 部分老题的消息里只写“所属期12月”不写年份，`xcheck.py` 读不出所属期会报差异，用 Agent 实跑不受影响。
-- 题目和标准答案没有经过执业会计复核。发现错题欢迎提 issue。
