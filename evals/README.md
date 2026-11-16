@@ -13,7 +13,8 @@
 - `build_cases*.py`：重新生成题目（结果固定，可复现）
 - `ref.py`：独立参考实现，计算题的标准答案由它算出
 - `run.sh`：用 codex CLI 当 agent 逐题实跑
-- `grade.py`：评分
+- `grade.py`：评分。文字规则匹配前会去掉空白、千分位逗号和引号书名号，“您”“你”等价；拒绝类关键点也认“不做/做不了/拒绝”等说法；禁词前面紧跟否定（如“不保证能直接导入”）不算违规，证件号除外
+- `test_grade.py`：评分规则的单元测试，`python3 -m unittest test_grade -v`
 - `xcheck.py`：不经 agent，直接用 skill 的脚本对照标准答案
 
 ```bash
