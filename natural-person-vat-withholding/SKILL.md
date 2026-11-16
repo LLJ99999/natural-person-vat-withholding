@@ -3,7 +3,7 @@ name: natural-person-vat-withholding
 description: "代扣代缴自然人增值税（财政部 税务总局公告2026年第28号、税务总局公告2026年第19号）。把单位付给个人的劳务费流水整理成《境内单位代扣代缴自然人增值税及附加税费申报表》及附列资料草稿：按人按日合并、判断1000元按次起征点、计算增值税和附加税费、列出异常。当用户提到代扣增值税、代扣代缴自然人增值税、28号公告、19号公告、劳务费/讲课费/讲座费/专家咨询费/评审费/设计费/稿费/翻译费要不要扣增值税、给个人付款怎么扣税、扣缴申报表怎么填、12月1日到15日扣缴申报时使用。不处理个人所得税；不代为提交申报。"
 version: 0.0.1
 license: MIT
-author: Microsoft Office User
+author: LLJ99999
 compatibility: workbuddy, claude-code, codex, openclaw
 metadata:
   requires: python3 (标准库即可，无需联网、无需 API Key)

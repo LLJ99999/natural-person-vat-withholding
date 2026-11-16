@@ -118,4 +118,4 @@ evals/                            # 评测题库与脚本
 
 ## 许可
 
-MIT。作者 Microsoft Office User，由 opus5.5 生成。
+MIT，见 [LICENSE](LICENSE)。
