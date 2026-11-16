@@ -1,0 +1,16 @@
+{
+ "prompt": "Who is responsible for withholding VAT when our company pays a freelance translator 3000 RMB?",
+ "expect": {
+  "text_any": [
+   [
+    "单位",
+    "公司",
+    "你们",
+    "贵公司",
+    "购买方",
+    "付款方"
+   ]
+  ],
+  "text_none": []
+ }
+}
