@@ -646,7 +646,7 @@ def main(argv=None):
     r.add_argument("--input", required=True)
     r.add_argument("--period", required=True, help="所属期 YYYY-MM（按付款日期）")
     r.add_argument("--amount-basis", required=True, choices=["含税", "不含税"])
-    r.add_argument("--default-relief", required=True, help="减按1% / 无优惠 / 残疾人免税")
+    r.add_argument("--default-relief", required=True, help="减按1%% / 无优惠 / 残疾人免税")
     r.add_argument("--city-rate", required=True, help="扣缴地点：市区 / 县城镇 / 其他")
     r.add_argument("--no-half-relief", action="store_true", help="附加税费不减半")
     r.add_argument("--category-map", help="摘要→服务大类 的确认表 CSV（列：摘要,服务大类）")
