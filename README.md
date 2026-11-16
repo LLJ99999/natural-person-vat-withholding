@@ -7,7 +7,7 @@
 | 内容 | 目录 | 单独下载 |
 |---|---|---|
 | Agent Skill：把劳务费流水整理成扣缴申报表草稿 | [`natural-person-vat-withholding/`](natural-person-vat-withholding/) | [Releases](https://github.com/LLJ99999/natural-person-vat-withholding/releases/latest) → `natural-person-vat-withholding-v0.0.1.zip` |
-| 评测题库：450 道题（题目、附件、标准答案）和评分脚本 | [`evals/`](evals/) | [Releases](https://github.com/LLJ99999/natural-person-vat-withholding/releases/latest) → `vat-eval-题库-450-v0.0.1.zip` |
+| 评测题库：450 道题（题目、附件、标准答案）和评分脚本 | [`evals/`](evals/) | [Releases](https://github.com/LLJ99999/natural-person-vat-withholding/releases/latest) → `vat-eval-question-bank-450-v0.0.1.zip` |
 
 > 仅辅助整理与计算，不构成税务意见。申报前请在自然人电子税务局（扣缴端）核对。
 
