@@ -653,6 +653,7 @@ def main(argv=None):
     r.add_argument("--out", required=True)
     q = sub.add_parser("quick", help="估算一个人某一天的税额（不需要证件号，不出申报表）")
     q.add_argument("--amounts", nargs="+", required=True, help="当天本单位付给此人的各笔金额")
+    q.add_argument("--items", nargs="+", help="各笔对应的应税交易项目（与 --amounts 一一对应，如 咨询服务 非学历教育服务）；不同项目分行逐行舍入，与申报表一致")
     q.add_argument("--date", default="2026-12-01", help="付款日期 YYYY-MM-DD")
     q.add_argument("--amount-basis", required=True, choices=["含税", "不含税"])
     q.add_argument("--relief", default="减按1%")
@@ -685,8 +686,11 @@ def main(argv=None):
         }, ensure_ascii=False, indent=1))
         return 0
     if a.cmd == "quick":
+        if a.items and len(a.items) != len(a.amounts):
+            p.error("--items 的个数必须和 --amounts 一样")
+        items = a.items or ["估算"] * len(a.amounts)
         recs = [{"_row": i + 2, "姓名": "（估算）", "身份证件类型": "估算", "身份证件号码": "ESTIMATE-1",
-                 "付款日期": a.date, "金额": x, "摘要": "估算", "服务大类": "咨询服务", "优惠": a.relief}
+                 "付款日期": a.date, "金额": x, "摘要": "估算", "服务大类": "咨询服务", "应税交易项目": items[i], "优惠": a.relief}
                 for i, x in enumerate(a.amounts)]
         res = compute(recs, a.date[:7], a.amount_basis, a.relief, a.city_rate,
                       half_relief=not a.no_half_relief)

@@ -212,6 +212,15 @@ class MessyInput(unittest.TestCase):
             calc.main(["quick", "--amounts", "600", "500", "--amount-basis", "含税"])
         self.assertEqual(_json.loads(buf.getvalue())["应扣缴增值税"], "10.89")
 
+    def test_quick_items_round_per_row(self):
+        # 同日不同应税交易项目分行、逐行舍入：7.20 + 2.94 = 10.14（合并一次舍入会得 10.13）
+        import io, contextlib, json as _json
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            calc.main(["quick", "--amounts", "719.69", "293.52", "--items", "咨询服务", "非学历教育服务",
+                       "--amount-basis", "不含税"])
+        self.assertEqual(_json.loads(buf.getvalue())["应扣缴增值税"], "10.14")
+
 
 if __name__ == "__main__":
     unittest.main()
