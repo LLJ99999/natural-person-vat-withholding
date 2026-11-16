@@ -34,7 +34,8 @@ evals/
     ├── organize.py        # 按类型整理到 题库/，生成总表
     ├── ref.py             # 独立参考实现，算计算题的标准答案
     ├── run.sh             # 用 codex CLI 当 Agent 逐题实跑
-    ├── grade.py           # 评分
+    ├── grade.py           # 评分（匹配前去空白、千分位逗号、引号；“您”“你”等价；拒绝类也认“不做/拒绝”；禁词前有否定不算违规，证件号除外）
+    ├── test_grade.py      # 评分规则的单元测试：cd scripts; python3 -m unittest test_grade -v
     └── xcheck.py          # 不经 Agent，直接拿 skill 脚本对答案
 ```
 
