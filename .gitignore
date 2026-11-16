@@ -2,3 +2,4 @@ rounds/
 __pycache__/
 *.pyc
 输出/
+evals/scripts/cases*/

@@ -1,0 +1,5 @@
+﻿姓名,身份证件类型,身份证件号码,付款日期,金额,摘要,应税交易项目,服务大类,是否已代开发票,代开时已缴税,优惠,销售方类型,平台代办,备注
+Name,ID Type,ID Number,Payment Date,Amount,Description,Taxable Item,Service Category,Invoice Issued,Tax Paid On Invoice,Relief,Seller Type,Platform Filed,Remarks
+吴昊,居民身份证,110105199001094699,2027-09-23,8522.68,UI设计,UI设计,设计服务,,,,,,
+吴昊,居民身份证,110105199001094699,2027-09-23,88000,稿费,文艺创作,文化服务,,,,,,
+赵磊,居民身份证,110105199001094664,2027-09-24,300,稿费,文艺创作,文化服务,,,,,,

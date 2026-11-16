@@ -1,7 +1,0 @@
-{
- "prompt": "Can you calculate the VAT withholding for this file? Period 2026-11, amounts exclude tax, 1% reduced rate, urban district, surcharge halved.",
- "expect": {
-  "status": "可复核",
-  "vat": "165.00"
- }
-}

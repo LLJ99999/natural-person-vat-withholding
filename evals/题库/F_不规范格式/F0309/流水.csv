@@ -1,0 +1,5 @@
+﻿姓名,身份证件类型,身份证件号码,付款日期,金额,摘要,应税交易项目,服务大类,是否已代开发票,代开时已缴税,优惠,销售方类型,平台代办,备注
+Name,ID Type,ID Number,Payment Date,Amount,Description,Taxable Item,Service Category,Invoice Issued,Tax Paid On Invoice,Relief,Seller Type,Platform Filed,Remarks
+张伟,居民身份证,11010519900107660X,2027-06-18,800,算法研发,研发服务,研发服务,,,,,,
+张伟,居民身份证,11010519900107660X,2027-06-01,88000,评审费,咨询服务,咨询服务,,,,,,
+罗丹,居民身份证,11010519900107679X,2027-06-25,35000,专家咨询费,咨询服务,咨询服务,,,,,,

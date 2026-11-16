@@ -1,0 +1,5 @@
+﻿姓名,身份证件类型,身份证件号码,付款日期,金额,摘要,应税交易项目,服务大类,是否已代开发票,代开时已缴税,优惠,销售方类型,平台代办,备注
+Name,ID Type,ID Number,Payment Date,Amount,Description,Taxable Item,Service Category,Invoice Issued,Tax Paid On Invoice,Relief,Seller Type,Platform Filed,Remarks
+罗丹,居民身份证,110105199001100796,2027-10-21,6527.76,独董津贴,咨询服务,咨询服务,,,,,,
+罗丹,居民身份证,110105199001100796,2027-10-25,12000,算法研发,研发服务,研发服务,,,,,,
+罗丹,居民身份证,110105199001100796,2027-10-28,950,小程序开发,软件开发服务,软件服务,,,,,,

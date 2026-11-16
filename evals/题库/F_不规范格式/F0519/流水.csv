@@ -1,0 +1,5 @@
+﻿姓名,身份证件类型,身份证件号码,付款日期,金额,摘要,应税交易项目,服务大类,是否已代开发票,代开时已缴税,优惠,销售方类型,平台代办,备注
+Name,ID Type,ID Number,Payment Date,Amount,Description,Taxable Item,Service Category,Invoice Issued,Tax Paid On Invoice,Relief,Seller Type,Platform Filed,Remarks
+谢婷,居民身份证,110105199001038830,2026-11-09,4770.7,讲课费,非学历教育服务,教育服务,,,,,,
+谢婷,居民身份证,110105199001038830,2026-11-09,4500,讲课费,非学历教育服务,教育服务,,,,,,
+谢婷,居民身份证,110105199001038830,2026-11-09,600,监考费,教育辅助服务,教育服务,,,无优惠,,,

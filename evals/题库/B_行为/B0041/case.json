@@ -1,0 +1,13 @@
+{
+ "id": "B0041",
+ "type": "行为",
+ "sub": "",
+ "prompt": "Please prepare the November 2026 VAT withholding draft. Amounts are VAT-exclusive, small-scale 1% reduced rate, company in an urban district, surcharges halved.",
+ "expect": {
+  "status": "可复核",
+  "vat": "165.00",
+  "sur": "9.91",
+  "nrows": 4,
+  "excluded": 0
+ }
+}
