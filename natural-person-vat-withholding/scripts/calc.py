@@ -153,6 +153,7 @@ CATEGORY_ALIASES = {"研发": "研发服务", "技术开发": "研发服务", "�
                     "设计": "设计服务", "咨询": "咨询服务", "文化": "文化服务", "教育": "教育服务",
                     "广播影视": "广播影视节目（作品）制作服务", "影视制作": "广播影视节目（作品）制作服务",
                     "广播影视节目制作服务": "广播影视节目（作品）制作服务", "广播影视节目(作品)制作服务": "广播影视节目（作品）制作服务"}
+RENT_RE = re.compile(r"租金|租赁|场地费|房租|租用|出租")
 NATURAL_SELLERS = ("", "自然人", "个人", "境内自然人")
 NON_NATURAL_SELLERS = ("个体工商户", "个体户", "公司", "企业", "单位", "有限公司", "合伙企业", "个人独资企业", "其他组织")
 
@@ -266,9 +267,13 @@ def parse_amount(s):
     if not s:
         return None
     try:
-        return Decimal(s)
+        d = Decimal(s)
     except Exception:
         return None
+    # xlsx 里的浮点数常带误差（如 1234.5600000000001），超过 6 位小数的按分四舍五入
+    if d.as_tuple().exponent < -6:
+        d = money(d)
+    return d
 
 
 def id_checksum_ok(idno):
@@ -281,8 +286,17 @@ def id_checksum_ok(idno):
 
 
 def mask(idno):
+    """证件号打码：前6位+后4位（如 110105********5019），与 SKILL.md 一致。"""
     idno = str(idno)
-    return idno[:3] + "*" * max(len(idno) - 7, 0) + idno[-4:] if len(idno) > 7 else "****"
+    if len(idno) > 10:
+        return idno[:6] + "*" * (len(idno) - 10) + idno[-4:]
+    return idno[:2] + "*" * max(len(idno) - 4, 0) + idno[-2:] if len(idno) > 4 else "****"
+
+
+def mask_name(name):
+    """姓名打码：只留第一个字（张三 -> 张*）。"""
+    name = str(name).strip()
+    return name[:1] + "*" * max(len(name) - 1, 1) if name else ""
 
 
 def yes(v):
@@ -336,27 +350,33 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
     res = Result()
     input_total = Decimal(0)
     good = []
+    sellers_by_id = defaultdict(set)
+    nonnatural_rows = defaultdict(list)
     for rec in records:
         row = rec["_row"]
         name = rec.get("姓名", "")
         if re.fullmatch(r"[\u4e00-\u9fff\s·]+", name or ""):
             name = re.sub(r"\s+", "", name)
         idno = rec.get("身份证件号码", "").replace(" ", "")
-        who = f"{name}({mask(idno)})" if name else f"行{row}"
+        who = f"{mask_name(name)}({mask(idno)})" if name else f"行{row}"
         amt = parse_amount(rec.get("金额", ""))
         if amt is not None:
             input_total += amt
         date = parse_date(rec.get("付款日期", ""))
         seller = (rec.get("销售方类型") or "").strip()
+        if idno:
+            sellers_by_id[idno].add("非自然人" if seller in NON_NATURAL_SELLERS else "自然人")
+            if seller in NON_NATURAL_SELLERS:
+                nonnatural_rows[idno].append((row, seller))
         if seller not in NATURAL_SELLERS and seller not in NON_NATURAL_SELLERS:
             res.issue([row], "异常", f"销售方类型“{seller}”无法识别（应为自然人/个体工商户/公司等）", who)
             continue
         if seller in NON_NATURAL_SELLERS:
-            res.excluded.append({"行号": row, "对象": who, "金额": rec.get("金额", ""),
+            res.excluded.append({"行号": row, "对象": who, "摘要": rec.get("摘要", ""), "金额": rec.get("金额", ""),
                                  "理由": f"销售方为{seller}，不属于代扣范围（即问即答第10问）"})
             continue
         if yes(rec.get("平台代办", "")):
-            res.excluded.append({"行号": row, "对象": who, "金额": rec.get("金额", ""),
+            res.excluded.append({"行号": row, "对象": who, "摘要": rec.get("摘要", ""), "金额": rec.get("金额", ""),
                                  "理由": "互联网平台已代办申报（28号公告第十四条）"})
             continue
         problems = []
@@ -377,7 +397,7 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
             res.issue([row], "异常", "；".join(problems), who)
             continue
         if date < effective:
-            res.excluded.append({"行号": row, "对象": who, "金额": fmt(amt),
+            res.excluded.append({"行号": row, "对象": who, "摘要": rec.get("摘要", ""), "金额": fmt(amt),
                                  "理由": "2026-11-01 前的交易由自然人自行申报（28号公告第十五条）"})
             continue
         if (date.year, date.month) != (py, pm):
@@ -388,8 +408,14 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
             res.issue([row], "提示", f"服务大类“{cat}”按“{CATEGORY_ALIASES[cat]}”处理", who)
             cat = CATEGORY_ALIASES[cat]
         if cat in ("不适用", "非七类"):
-            res.excluded.append({"行号": row, "对象": who, "金额": fmt(amt),
-                                 "理由": "不属于七类服务（经人工确认）"})
+            if rec.get("服务大类", ""):
+                why = "流水“服务大类”已填不适用（用户自填，本工具未核实）"
+            else:
+                why = "类别确认表确认不属于七类服务"
+            res.excluded.append({"行号": row, "对象": who, "摘要": rec.get("摘要", ""), "金额": fmt(amt), "理由": why})
+            if RENT_RE.search(rec.get("摘要", "") or ""):
+                res.issue([row], "提示", "摘要像租金（场地/房屋租赁）：如对方当月有出租不动产等按月计税的情形，"
+                          "整月不适用本办法、单位无需代扣，请对方向税务机关按月申报（即问即答第12问）", who)
             continue
         if cat not in categories:
             res.issue([row], "异常", f"服务类别待确认（摘要：{rec.get('摘要', '') or '空'}；填写值：{cat or '空'}）", who)
@@ -411,6 +437,17 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
             "summary": rec.get("摘要", ""),
         })
 
+    # 同一证件号既有自然人行、又有个体工商户/公司等行
+    for idno, kinds in sellers_by_id.items():
+        if len(kinds) > 1:
+            nat_rows = [g["row"] for g in good if g["id"] == idno]
+            nn = nonnatural_rows[idno]
+            who0 = next((g["who"] for g in good if g["id"] == idno), mask(idno))
+            res.issue(sorted(nat_rows + [r for r, _ in nn]), "提示",
+                      f"同一证件号既按自然人申报（第{'、'.join(map(str, nat_rows)) or '无'}行），"
+                      f"又在第{'、'.join(str(r) for r, _ in nn)}行标为{'/'.join(sorted(set(k for _, k in nn)))}被排除；"
+                      "请核实销售方类型是否标错（标错会漏扣），以营业执照/发票上的销售方为准", who0)
+
     # 疑似重复录入：证件号、日期、金额、摘要完全相同
     seen = defaultdict(list)
     for g in good:
@@ -418,7 +455,7 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
     for k, rows in seen.items():
         if len(rows) > 1:
             res.issue(rows, "提示", f"这{len(rows)}行证件号、日期、金额、摘要完全相同，疑似重复录入；"
-                      "本工具已按多笔分别付款合计，若是重复请删掉多余行后重跑",
+                      "本工具已按多笔分别付款合计（可能多扣）。申报前务必核实，若是重复请删掉多余行后重跑",
                       next(g["who"] for g in good if g["row"] == rows[0]))
 
     # 同一证件号多个姓名 / 同一姓名多个证件号
@@ -452,7 +489,8 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
         taxed = money(net) >= threshold
         day_taxed[key] = taxed
         for g in gs:
-            if amount_basis == "含税" and taxed:
+            # 含税口径一律价税分离，申报表“销售额”填不含税销售额（未达起征点的行也一样）
+            if amount_basis == "含税":
                 g["sales"] = money(g["amount"] / (1 + g["rate"]))
             else:
                 g["sales"] = money(g["amount"])
@@ -492,11 +530,37 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
     vat_total = Decimal(0)
     sur_total = Decimal(0)
     sales_total = Decimal(0)
-    makeup = []
+    makeup = []          # (rows, who, 增值税, 附加)
+    untaxed = defaultdict(list)   # who -> [(rows, date, 当日销售额)]
+    groups = OrderedDict()        # 口径 -> [行数, 销售额, 增值税]
+
+    def surcharge(vat):
+        """附加税费（附列资料第7–19列；即问即答第28问）：返回 [(减免额, 应缴额)] × 3"""
+        out = []
+        for r in (city_rate, edu_rate, local_rate):
+            full = money(vat * r)
+            due = money(vat * r * Decimal("0.5")) if half_relief else full
+            out.append((full - due, due))
+        return out
+
+    def bump(key, sales, vat):
+        g = groups.setdefault(key, [0, Decimal(0), Decimal(0)])
+        g[0] += 1
+        g[1] += sales
+        g[2] += vat
+
+    day_sales = defaultdict(Decimal)
+    for (pid, d), gs in day_groups.items():
+        day_sales[(pid, d)] = sum(g["sales"] for g in gs)
+
     for lk, ln in lines.items():
         seq += 1
         sales = money(ln["sales"])
         sales_total += sales
+        if len(ln["rows"]) > 1:
+            res.issue(ln["rows"], "提示",
+                      f"第{'、'.join(map(str, ln['rows']))}行同人、同日、同一应税交易项目，合并为申报表第{seq}行"
+                      f"（销售额 {fmt(sales)}；即问即答第40、41问）", ln["who"])
         datestr = ln["date"].isoformat()
         base = [str(seq), ln["name"], ln["idtype"], ln["id"], datestr, ln["item"],
                 "是" if ln["invoiced"] else "否", fmt(sales)]
@@ -506,10 +570,26 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
             attach = [str(seq), ln["name"], ln["id"], datestr, ln["item"]] + [DASH] * 14
             if ln["taxed"] and ln["invoice_unpaid"]:
                 owe = money(sales * ln["rate"])
-                makeup.append(owe)
+                owe_sur = sum((d for _, d in surcharge(owe)), Decimal(0))
+                makeup.append((ln["rows"], ln["who"], owe, owe_sur))
+                tail = (f"申报时系统会提示补扣增值税约 {fmt(owe)} 元、附加税费约 {fmt(owe_sur)} 元"
+                        "（不含在“应扣缴增值税合计”里，须另外向用户说明；即问即答第43问）")
+                if sales >= threshold:
+                    res.issue(ln["rows"], "提示",
+                              f"已代开的 {fmt(sales)} 元单笔已达起征点，但“代开时已缴税”填的是“否”：请先核实是否漏填"
+                              f"（代开时已缴税的应改为“是”）；确实未缴的，{tail}", ln["who"])
+                else:
+                    res.issue(ln["rows"], "提示",
+                              f"已代开的 {fmt(sales)} 元代开时未缴税（单笔未达起征点），但当日合计已达起征点，{tail}",
+                              ln["who"])
+                bump("已代开（代开时未缴税，可能需补扣）", sales, Decimal(0))
+            elif ln["invoice_unpaid"]:
+                bump("已代开（代开时未缴税，当日未达起征点）", sales, Decimal(0))
+            else:
                 res.issue(ln["rows"], "提示",
-                          f"已代开的 {fmt(sales)} 元当时按未达起征点免税，但当日合计已达起征点，"
-                          f"申报时系统会提示补扣增值税约 {fmt(owe)} 元及附加（即问即答第43问）", ln["who"])
+                          f"已代开发票并已缴税的 {fmt(sales)} 元：本单位不再扣缴，但仍须在申报表列示申报"
+                          "（第9–13列填——；28号公告第六条，即问即答第22–24问）", ln["who"])
+                bump("已代开（代开时已缴税）", sales, Decimal(0))
             res.main.append(main)
             res.attach.append(attach)
             continue
@@ -517,7 +597,8 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
             vat = Decimal(0)
             main = base + ["未达起征点", "", "0.00", "0.00", "0.00",
                            (note + "；" if note else "") + "当日合计未达1000元按次起征点"]
-            res.issue(ln["rows"], "提示", "未达起征点行第9–11列填法填报说明未举例，申报前请在系统中核对", ln["who"])
+            untaxed[ln["who"]].append((ln["rows"], ln["date"], day_sales[(ln["id"], ln["date"])]))
+            bump("未达起征点", sales, vat)
         else:
             rinfo = reliefs[ln["relief"]]
             rate = ln["rate"]
@@ -530,14 +611,16 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
                 main = base + [pct(rate), f"{rinfo['label']}|{rinfo['code']}",
                                fmt(sales * (statutory - rate)), fmt(vat)]
             main = main + [None, note]
-        # 附加税费（填报说明附列资料第7–19列；即问即答第28问）
-        def part(r):
-            full = money(vat * r)
-            due = money(vat * r * Decimal("0.5")) if half_relief else full
-            return full - due, due
-        c_rel, c_due = part(city_rate)
-        e_rel, e_due = part(edu_rate)
-        l_rel, l_due = part(local_rate)
+            bump(ln["relief"], sales, vat)
+            if rate == 0:
+                res.issue(ln["rows"], "提示",
+                          f"按“{ln['relief']}”申报：销售额 {fmt(sales)} 元，应扣缴增值税为 0，仍须申报；"
+                          "请留存免税资格证明（如残疾人证）", ln["who"])
+            elif ln["relief"] == "无优惠" and ln["relief"] != default_relief:
+                res.issue(ln["rows"], "提示",
+                          f"该行“优惠”列填了“无优惠”，按 {pct(rate)}% 计税（增值税 {fmt(vat)} 元），与默认口径不同",
+                          ln["who"])
+        (c_rel, c_due), (e_rel, e_due), (l_rel, l_due) = surcharge(vat)
         sur_sum = c_due + e_due + l_due
         code = "（按减免税政策代码目录填写）" if half_relief and vat > 0 else ""
         attach = [str(seq), ln["name"], ln["id"], datestr, ln["item"], fmt(vat),
@@ -550,6 +633,35 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
         sur_total += sur_sum
         res.main.append(main)
         res.attach.append(attach)
+
+    # 未达起征点：按人合并成一条提示
+    for who, items in untaxed.items():
+        rows = sorted({r for rs, _, _ in items for r in rs})
+        days = OrderedDict()
+        for _, d, tot in items:
+            days[d] = tot
+        desc = "、".join(f"{d.isoformat()} 当日合计 {fmt(t)} 元" for d, t in days.items())
+        res.issue(rows, "提示",
+                  f"{desc}，未达1000元起征点：不扣税，但仍须申报（28号公告第六条；即问即答第22–24问）。"
+                  "未达起征点行第9–11列填法填报说明未举例，申报前请在系统中核对", who)
+
+    makeup_vat = sum((m[2] for m in makeup), Decimal(0))
+    makeup_sur = sum((m[3] for m in makeup), Decimal(0))
+    if makeup and makeup_vat >= vat_total:
+        res.issue(sorted({r for m in makeup for r in m[0]}), "提示",
+                  f"可能需补扣的增值税 {fmt(makeup_vat)} 元不低于本表应扣缴合计 {fmt(vat_total)} 元，"
+                  "汇报时务必单独列出，并请用户先核实“代开时已缴税”是否填对", "")
+
+    # 特别提醒（与具体行无关）
+    reminders = []
+    for key, rinfo in reliefs.items():
+        vu = rinfo.get("valid_until")
+        if vu and key in groups:
+            vd = dt.date.fromisoformat(vu)
+            if (vd.year, vd.month) == (py, pm):
+                reminders.append(f"本所属期是“{key}”政策快照截止月（{vu}）；下月起是否延续须核对最新公告，不要沿用本月口径")
+    if not res.main:
+        reminders.append("本期没有纳入申报的行（全部不适用或有异常）；是否需要零申报，请向主管税务机关或12366确认")
 
     # ------------------------------------------------ 闸门（gates）
     gates = OrderedDict()
@@ -569,6 +681,7 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
     gates["逐行复算：销售额×征收率 = 应扣缴增值税"] = recompute_ok
     gates["申报表销售额合计 = 已纳入行销售额之和"] = money(sum(Decimal(m[7]) for m in res.main)) == money(sales_total)
 
+    res.issues.sort(key=lambda i: (int(i["行号"].split(",")[0]) if i["行号"].split(",")[0].isdigit() else 0))
     n_err = sum(1 for i in res.issues if i["级别"] == "异常")
     status = "可复核" if n_err == 0 and all(gates.values()) else "草稿-有异常，不可直接申报"
     res.summary = OrderedDict([
@@ -588,11 +701,17 @@ def compute(records, period, amount_basis, default_relief, city_rate_key,
         ("销售额合计", fmt(sales_total)),
         ("应扣缴增值税合计", fmt(vat_total)),
         ("应扣缴附加税费合计", fmt(sur_total)),
-        ("可能需补扣增值税（已代开部分）", fmt(sum(makeup, Decimal(0)))),
+        ("可能需补扣增值税（已代开部分）", fmt(makeup_vat)),
+        ("可能需补扣附加税费（已代开部分）", fmt(makeup_sur)),
+        ("补扣说明", "补扣金额不含在上面两个合计里；不为 0 时汇报要单独列出（即问即答第43问）"),
+        ("不适用金额合计", fmt(sum((parse_amount(e["金额"]) or Decimal(0) for e in res.excluded), Decimal(0)))),
+        ("按口径分组", OrderedDict((k, OrderedDict([("申报表行数", v[0]), ("销售额", fmt(v[1])), ("应扣缴增值税", fmt(v[2]))]))
+                              for k, v in groups.items())),
         ("申报期限", _deadline(period)),
+        ("特别提醒", reminders),
         ("闸门", gates),
         ("政策快照", policy["snapshot_date"]),
-        ("未核实事项", policy["unverified"]),
+        ("未核实事项", [u for u in policy["unverified"] if half_relief or "减半" not in u]),
         ("声明", "仅辅助整理与计算，不构成税务意见；申报前请在自然人电子税务局（扣缴端）核对。"),
     ])
     return res
@@ -620,8 +739,12 @@ def save(res, out):
     write_csv(os.path.join(out, prefix + "附列资料.csv"), ATTACH_HEADER, res.attach)
     write_csv(os.path.join(out, "异常与提示.csv"), ["行号", "级别", "对象", "说明"],
               [[i["行号"], i["级别"], i["对象"], i["说明"]] for i in res.issues])
-    write_csv(os.path.join(out, "不适用清单.csv"), ["行号", "对象", "金额", "理由"],
-              [[e["行号"], e["对象"], e["金额"], e["理由"]] for e in res.excluded])
+    ex_path = os.path.join(out, "不适用清单.csv")
+    if res.excluded:
+        write_csv(ex_path, ["行号", "对象", "摘要", "金额", "理由"],
+                  [[e["行号"], e["对象"], e.get("摘要", ""), e["金额"], e["理由"]] for e in res.excluded])
+    elif os.path.exists(ex_path):
+        os.remove(ex_path)
     with open(os.path.join(out, "summary.json"), "w", encoding="utf-8") as f:
         json.dump(res.summary, f, ensure_ascii=False, indent=2)
 
@@ -713,7 +836,8 @@ def main(argv=None):
     save(res, a.out)
     print(json.dumps(res.summary, ensure_ascii=False, indent=2))
     print("\n【回复最后一行必须原样写上】" + res.summary.get("声明", "仅辅助整理与计算，不构成税务意见；申报前请在自然人电子税务局（扣缴端）核对。"))
-    return 0 if res.summary["状态"] == "可复核" else 2
+    # 草稿（有异常）也是正常完成，退出码为 0；是否可复核看 summary.json 的“状态”
+    return 0
 
 
 if __name__ == "__main__":

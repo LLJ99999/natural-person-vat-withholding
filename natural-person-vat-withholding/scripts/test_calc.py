@@ -266,3 +266,56 @@ class V05Reading(unittest.TestCase):
         self.assertEqual(v, Decimal("0.00"))
         self.assertEqual(len(r.main), 1)
         self.assertEqual(r.main[0][8], "——")
+
+
+class EvalFindings(unittest.TestCase):
+    """2026-11 评测发现的问题的回归测试。"""
+
+    def test_big_invoice_unpaid_not_called_threshold_exempt(self):
+        r = run([rec("甲某", 31, "2026-12-03", 5000, 是否已代开发票="是", 代开时已缴税="否")], "2026-12")
+        msg = [i["说明"] for i in r.issues if "已代开" in i["说明"]][0]
+        self.assertNotIn("按未达起征点免税", msg)
+        self.assertIn("核实", msg)
+        self.assertEqual(r.summary["可能需补扣增值税（已代开部分）"], "50.00")
+        self.assertEqual(r.summary["可能需补扣附加税费（已代开部分）"], "3.00")
+
+    def test_same_id_natural_and_business(self):
+        r = run([rec("乙某", 32, "2026-12-03", 3000, 销售方类型="个体工商户"),
+                 rec("乙某", 32, "2026-12-04", 2000)], "2026-12")
+        self.assertTrue(any("同一证件号既按自然人申报" in i["说明"] for i in r.issues))
+
+    def test_tax_inclusive_under_threshold_sales_separated(self):
+        r = run([rec("丙某", 33, "2026-12-05", "1001.00")], "2026-12", basis="含税")
+        self.assertEqual(r.main[0][8], "未达起征点")
+        self.assertEqual(r.main[0][7], "991.09")
+
+    def test_under_threshold_hint_says_declare_once_per_person(self):
+        r = run([rec("丁某", 34, "2026-12-05", 300), rec("丁某", 34, "2026-12-06", 400)], "2026-12")
+        hints = [i for i in r.issues if "未达1000元起征点" in i["说明"]]
+        self.assertEqual(len(hints), 1)
+        self.assertIn("仍须申报", hints[0]["说明"])
+
+    def test_user_marked_not_applicable_reason_and_rent_hint(self):
+        r = run([rec("戊某", 35, "2026-12-05", 5000, "不适用", 摘要="12月场地租金")], "2026-12")
+        self.assertIn("用户自填", r.excluded[0]["理由"])
+        self.assertTrue(any("第12问" in i["说明"] for i in r.issues))
+        self.assertEqual(r.summary["不适用金额合计"], "5000.00")
+
+    def test_no_half_relief_drops_rounding_item(self):
+        r = run([rec("己某", 36, "2026-12-05", 2000)], "2026-12", half_relief=False)
+        self.assertFalse(any("减半" in u for u in r.summary["未核实事项"]))
+
+    def test_exempt_row_explained_and_grouped(self):
+        r = run([rec("庚某", 37, "2027-04-15", 2500, 优惠="残疾人免税")], "2027-04")
+        self.assertEqual(r.summary["应扣缴增值税合计"], "0.00")
+        self.assertTrue(any("残疾人免税" in i["说明"] for i in r.issues))
+        self.assertIn("残疾人免税", r.summary["按口径分组"])
+
+    def test_cutoff_month_and_masking(self):
+        r = run([rec("辛某某", 38, "2027-12-05", 2000)], "2027-12")
+        self.assertTrue(any("截止月" in x for x in r.summary["特别提醒"]))
+        self.assertEqual(calc.mask(fake_id(38))[:6], fake_id(38)[:6])
+        self.assertEqual(calc.mask_name("辛某某"), "辛**")
+
+    def test_xlsx_float_noise(self):
+        self.assertEqual(calc.parse_amount("1234.5600000000001"), Decimal("1234.56"))
