@@ -1,6 +1,6 @@
 # 代扣代缴自然人增值税助手
 
-版本 v0.0.1
+版本 v0.0.2
 
 给单位财务用的 AI 技能：把这个月付给个人的劳务费流水交给 AI，它帮你整理出《境内单位代扣代缴自然人增值税及附加税费申报表》和附列资料的草稿，并把有问题的款项单独列出来。12 月 1 日至 15 日是第一次申报。
 
@@ -10,7 +10,7 @@
 
 **WorkBuddy**：点“技能”→“添加技能”→“上传技能”，选这个压缩包（不用解压）。
 
-**Claude Code / Codex 等其他工具**：把压缩包解压到工具的技能文件夹里。
+**Claude Code / Codex 等其他工具**：把压缩包解压到工具的技能文件夹里（Claude Code 是 `~/.claude/skills/`）。也可以直接对 AI 说：“请帮我安装这个技能：https://github.com/LLJ99999/natural-person-vat-withholding ，技能是仓库里的 natural-person-vat-withholding 文件夹。”
 
 电脑需要装有 Python 3（可在 python.org 免费下载）。全程在你自己电脑上算，不联网上传数据。
 
